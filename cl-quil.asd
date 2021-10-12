@@ -280,4 +280,5 @@
   :components ((:file "package")
                (:file "suite")
                (:file "hasse-diagram-tests")
-               (:file "circuit-diagram-tests")))
+               (:file "circuit-diagram-tests")
+               (:file "quil-perf-viz-tests")))

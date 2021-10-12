@@ -352,7 +352,7 @@
   '(:tests/tools "2021-10-09-benchmark-nq-data"))
 
 (defun get-tests-tools-system-relative-pathname ()
-  (asdf:system-relative-pathname :cl-quil/tools "src/tools/"))
+  (asdf:system-relative-pathname :cl-quil/tools "tests/tools/"))
 
 (defun csv-location-to-pathname (spec)
   (cond
