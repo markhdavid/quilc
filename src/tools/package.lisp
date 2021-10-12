@@ -22,4 +22,11 @@
   ;; circuit-diagram.lisp
   (:export
    #:plot-circuit)
+
+  ;; quil-perf-viz.lisp
+  (:export
+   #:*default-csv-data-location*
+   #:look-up-chart-def
+   #:call-chart
+   #:get-tests-tools-system-relative-pathname)
   )
