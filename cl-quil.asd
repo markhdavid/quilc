@@ -349,7 +349,11 @@
   :license "Apache License 2.0 (See LICENSE.txt)"
   :depends-on (#:cl-quil
                #:common-lisp-jupyter
-               #:swank)
+               #:swank
+               #:plotsdam               ; for quil-perf-viz.lisp (not
+                                        ; yet in quicklisp:
+                                        ; https://github.com/kilimanjaro/plotsdam)
+               )
   :in-order-to ((asdf:test-op (asdf:test-op #:cl-quil/tools-tests)))
   :around-compile (lambda (compile)
                     (let (#+sbcl (sb-ext:*derive-function-types* t))
@@ -358,7 +362,8 @@
   :serial t
   :components ((:file "package")
                (:file "hasse-schedule")
-               (:file "circuit-diagram")))
+               (:file "circuit-diagram")
+               (:file "quil-perf-viz")))
 
 (asdf:defsystem #:cl-quil/tools-tests
   :description "Regression tests for tools for cl-quil developers."
@@ -373,4 +378,5 @@
   :components ((:file "package")
                (:file "suite")
                (:file "hasse-diagram-tests")
-               (:file "circuit-diagram-tests")))
+               (:file "circuit-diagram-tests")
+               (:file "quil-perf-viz-tests")))
