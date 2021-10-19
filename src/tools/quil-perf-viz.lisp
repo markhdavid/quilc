@@ -483,9 +483,11 @@
    and defaults to :HTTP)."
   (let ((fn 
           (or (look-up-chart-def program-type chip-type opt-names)
-              (error "Chart fn lookup failed."))))
-    (apply fn `(,(and data-specified `(:data ,data))
-                ,(and mode-specified `(:mode ,mode))))))
+              (error "Chart fn lookup failed.")))
+        (keyword-args
+          `(,@(and data-specified `(:data ,data))
+            ,@(and mode-specified `(:mode ,mode)))))
+    (apply fn keyword-args)))
      
 
 )                                       ; end (eval-when ...)
