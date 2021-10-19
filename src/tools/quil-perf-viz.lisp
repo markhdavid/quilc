@@ -349,7 +349,7 @@
 ;;; CSV Data Locations and Default Location
 
 (defparameter *default-csv-data-location*
-  '(:tests/tools "2021-10-09-benchmark-nq-data"))
+  '(:tests/tools "2021-10-17-benchmark-nq-data"))
 
 (defun get-tests-tools-system-relative-pathname ()
   (asdf:system-relative-pathname :cl-quil/tools "tests/tools/"))
@@ -424,16 +424,69 @@
 
 
 
+(defvar *chart-defs*
+  (make-hash-table :test 'equal)
+  "Hash-table for looking up chart defs. Do not access this directly,
+   but rather through LOOK-UP-CHART-DEF. Keys are compared using equal
+   and are lists of the form
+
+     (program-type chip-type . opt-names-in-order)
+
+   Values are names of functions defined via DEF-CHART for the
+   parameters specified in the key. LOOK-UP-CHART-DEF manages the
+   proper ordering of keys.")
+
+
+(defun make-chart-def-lookup-key (program-type chip-type opt-names)
+  (let ((normalized-opt-names (sort (copy-list opt-names) #'string<)))
+    (list* program-type chip-type normalized-opt-names)))
+
+(defun look-up-chart-def (program-type chip-type opt-names)
+  "Look up name of function for producing the chart for PROGRAM-TYPE,
+   CHIP-TYPE, and OPT-NAMES.  Note that OPT-NAMES a list of opt names
+   that appear in a benchmarking CSV data file, which are keyword
+   symbols and may given here in any order."
+  (gethash 
+   (make-chart-def-lookup-key program-type chip-type opt-names)
+   *chart-defs*))
+
+(defsetf look-up-chart-def (program-type chip-type opt-names)
+    (function-name)
+  `(setf (gethash 
+           (make-chart-def-lookup-key ,program-type ,chip-type ,opt-names)
+           *chart-defs*)
+     ,function-name))
+    
+
 (defmacro def-chart ((name) program-type chip-type &rest opt-names)
   (let ((spec (get-chart-spec program-type chip-type opt-names)))
     (let ((data-var '#:data))
-      `(defun ,name (&key data mode)
-         (let ((,data-var (or data (get-default-data))))
-           (case mode
-             ((nil :http)
-              (plotsdam:plot (,data-var :mode :http) ,@spec))
-             (otherwise
-              (plotsdam:plot (,data-var :mode :immediate) ,@spec))))))))
+      `(progn 
+         (defun ,name (&key data mode)
+           (let ((,data-var (or data (get-default-data))))
+             (case mode
+               ((nil :http)
+                (plotsdam:plot (,data-var :mode :http) ,@spec))
+               (otherwise
+                (plotsdam:plot (,data-var :mode :immediate) ,@spec)))))
+         (setf (look-up-chart-def ',program-type ',chip-type ',opt-names)
+               ',name)
+         ',name))))
+
+
+(defun call-chart (program-type chip-type opt-names 
+                   &key (data nil data-specified)
+                        (mode nil mode-specified))
+  "Call for chart based on PROGRAM-TYPE, CHIP-TYPE, and OPT-NAMES with
+   optional keyword args :DATA (defaults to data specified by
+   *default-csv-data-location*) and :MODE (one of :HTTP or :IMMEDIATE,
+   and defaults to :HTTP)."
+  (let ((fn 
+          (or (look-up-chart-def program-type chip-type opt-names)
+              (error "Chart fn lookup failed."))))
+    (apply fn `(,(and data-specified `(:data ,data))
+                ,(and mode-specified `(:mode ,mode))))))
+     
 
 )                                       ; end (eval-when ...)
 
