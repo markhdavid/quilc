@@ -182,8 +182,6 @@
 (defparameter *opt-name-mappings*
   '((1 . :baseline)
     (2 . :baseline-2)
-    (3 . :new-walker)
-    (4 . :new-walker-2)
     (5 . :cached-addresser-state)
     (6 . :cached-addresser-state-2)))
 
@@ -277,16 +275,12 @@
   
 
 (defparameter *interesting-opt-name-groups*
-  '((:baseline :new-walker)
-    (:baseline :cached-addresser-state)
-    (:baseline :new-walker :cached-addresser-state)
+  '((:baseline :cached-addresser-state)
 
-    (:baseline-2 :new-walker-2)
     (:baseline-2 :cached-addresser-state-2)
-    (:baseline-2 :new-walker-2 :cached-addresser-state-2)
 
-    (:baseline-2 :new-walker-2 :cached-addresser-state-2 
-     :baseline :new-walker :cached-addresser-state)))
+    (:baseline-2 :cached-addresser-state-2 
+     :baseline :cached-addresser-state)))
 
 (defun get-name-for-chart-function (program-type chip-type group)
   (let ((config (program-and-chip-to-config program-type chip-type)))
