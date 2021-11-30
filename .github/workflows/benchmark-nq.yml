@@ -1,0 +1,50 @@
+name: Benchmark nQ
+
+on:
+  push:
+    branches: [ feature/benchmark-ci ]
+  pull_request:
+    branches: [ master ]
+
+  workflow_dispatch:
+
+jobs:
+  benchmark-nq:
+    name: Benchmark nQ
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: set up benchmark-nq
+        run: |
+          sudo apt install sbcl
+          mkdir -p ${HOME}/quicklisp/local-projects
+          git -C ${HOME}/quicklisp/local-projects clone https://github.com/quil-lang/magicl.git
+          git -C ${HOME}/quicklisp/local-projects clone https://github.com/quil-lang/qvm.git
+          make quicklisp
+          sudo make install-test-deps
+          mkdir -p ${HOME}/quicklisp/local-projects/stash
+
+      - name: run benchmark-nq on current branch
+        run: |
+          echo "working directory: " `pwd`
+          echo "branch: " `git branch --show-current`
+          make benchmark-nq | tee ${HOME}/quicklisp/local-projects/stash/this-branch-benchmark-nq-log.txt
+
+      - uses: actions/checkout@v2
+        with:
+          ref: master
+
+      - name: run benchmark-nq on master
+        run: |
+          echo "working directory: " `pwd`
+          echo "branch: " `git branch --show-current`
+          make benchmark-nq | tee ${HOME}/quicklisp/local-projects/stash/master-branch-benchmark-nq-log.txt
+
+      - name: analyze/compare benchmark-nq on both branches
+        run: |
+          ls -l ${HOME}/quicklisp/local-projects/stash/this-branch-benchmark-nq-log.txt
+          tail -11 ${HOME}/quicklisp/local-projects/stash/this-branch-benchmark-nq-log.txt
+          ls -l ${HOME}/quicklisp/local-projects/stash/master-branch-benchmark-nq-log.txt
+          tail -11 ${HOME}/quicklisp/local-projects/stash/master-branch-benchmark-nq-log.txt
+          echo DONE.
