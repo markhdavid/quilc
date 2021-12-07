@@ -27,5 +27,6 @@
   (:export
    #:*default-csv-data-location*
    #:look-up-chart-def
-   #:call-chart)
+   #:call-chart
+   #:get-tests-tools-system-relative-pathname)
   )

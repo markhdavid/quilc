@@ -29,6 +29,12 @@
 ;; That pops you into a browser showing the Vega-Lite chart. Then do
 ;; View Source. Then copy the resulting JSON source into the file
 ;; "2021-10-09-benchmark-nq-data-perf-viz-1.json" in this directory.
+;;
+;; For the second entry, evaluate
+;;
+;;   (funcall (look-up-chart-def :bell :fully-connected '(:baseline :new-walker)))
+;;
+;; and so on following the above pattern.
 
 
 
@@ -36,9 +42,11 @@
   (make-pathname
    :name base-file-name
    :type "json"
-   :defaults (cl-quil.tools::get-tests-tools-system-relative-pathname)))
+   :defaults (cl-quil.tools:get-tests-tools-system-relative-pathname)))
 
 (defun get-json-of-test-function (fn)
+  (when (null fn)
+    (error "Function FN is nil, expected it to be a function"))
   (let ((plot-op-json-string (funcall fn :mode ':immediate)))
     (cl-json:decode-json-from-string plot-op-json-string)))
 

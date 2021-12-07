@@ -15,6 +15,11 @@
 
 ;;;; Reading Benchmarking CSV Data
 
+;;; Case 1: Opt Timings File
+
+;;; An `opt timings file` contains data in a format readable by the
+;;; following function.
+
 ;;; Function READ-ALL-OPT-TIMINGS-FROM-FILE (see below) reads
 ;;; benchmarking data from a file in the format of benchmarking CSV
 ;;; data and returns it as a Lisp data structure in the format used by
@@ -84,6 +89,10 @@
                 (and end (1+ end)))
         nil)))
 
+(defun blank-line-p (line)
+  (loop for char across line
+        always (member char '(#\space #\tab))))
+
 (defun read-non-blank-line (stream)
   (loop :for l := (read-line stream nil nil)
         :while l
@@ -103,10 +112,13 @@
 (defun read-header-row (stream)
   "Call when STREAM is positioned on line with header. Returns list of
   header name symbols"
-  (loop :with line 
-          := (or (read-line stream nil nil) 
-                 (return '()))
-        :with start := 0
+  (let ((line (read-line stream nil nil)))
+    (if (null line)
+        '()
+        (read-header-row-from-line line))))
+
+(defun read-header-row-from-line (line)
+  (loop :with start := 0
         :with name-symbol
         :do (multiple-value-setq (name-symbol start)
               (ez-read-csv-name-symbol line start))
@@ -123,28 +135,33 @@
   result collected so far before problem encountered; and (3) the last
   item read (which had a problem), if any, and otherwise either nil
   or, in case of a Lisp read error, the error condition."
-  (let* ((*read-eval* t)   ; do NOT eval #.(inject-stg)
-         (line             ; 1st non-empty, trimmed line or nil at EOF
+  (let* ((line             ; 1st non-empty, trimmed line or nil at EOF
            (read-line stream nil nil)))
     (when line
-      (setq line (string-trim '(#\space #\tab) line))
-      (setq line (nsubstitute #\space #\, line)))
-    (when (and line (not (string= line "")))
-      (with-input-from-string (in line)
-        (loop :for first-time := t :then nil
-              :as next = (multiple-value-bind
-                               (read-thing condition)
-                             (ignore-errors (read in nil nil))
-                           (if condition
-                               (return (values nil result condition))
-                               read-thing))
-              :while next
-              :do (or (if first-time
-                          (integerp next)
-                          (floatp next))
-                      (return (values nil result next)))
-              :collect next :into result
-              :finally (return result))))))
+      (read-data-row-from-line line))))
+
+(defun read-data-row-from-line (line)
+  ;; Trim line and, since values are comma-separated, remove them to
+  ;; ease READing.
+  (setq line (string-trim '(#\space #\tab) line))
+  (setq line (nsubstitute #\space #\, line))
+  (when (not (string= line ""))         ; if line blank, return nil
+    (with-input-from-string (in line)
+      (loop :with *read-eval* := nil    ; do NOT eval #.(inject-stg)
+            :for first-time := t :then nil
+            :as next = (multiple-value-bind
+                             (read-thing condition)
+                           (ignore-errors (read in nil nil))
+                         (if condition
+                             (return (values nil result condition))
+                             read-thing))
+            :while next
+            :do (or (if first-time
+                        (integerp next)
+                        (floatp next))
+                    (return (values nil result next)))
+            :collect next :into result
+            :finally (return result)))))
 
 (defun read-data-rows (stream)
   (loop :for data-row 
@@ -156,8 +173,12 @@
   (let ((opt-name (read-opt-name stream)))
     (when opt-name
       `(,opt-name
-        ,(read-header-row stream)
-        ,@(read-data-rows stream)))))
+        ,@(read-header-row-and-data-rows stream)))))
+
+
+(defun read-header-row-and-data-rows (stream)
+  `(,(read-header-row stream)
+    ,@(read-data-rows stream)))
 
 
 (defun read-all-opt-timings-from-file (filename)
@@ -168,6 +189,78 @@
     (loop :for timings := (read-opt-timings stream)
           :while timings
           :collect timings)))
+
+
+
+;;; Case 2: Scrapable Output
+
+;;; A `scrapable output file` is output that is believed to contain
+;;; somewhere in it the same data as in an opt timings file except for
+;;; the opt name.  The data is typically unique-looking enough that
+;;; can be "scraped" out of the output with no ambiguity.  The output
+;;; from benchmark-nq (package cl-quil-benchmarking) typically
+;;; contains two series of CSV data: (1) raw timings; and (2) timings
+;;; scaled to the max of the series. In this case, the first of these
+;;; is the desired series.
+
+;;; Function READ-TIMINGS-FROM-SCRAPABLE-FILE reads benchmarking data
+;;; from a scrapable output file, if available, returning either nil
+;;; (if no data available) or a list of the form
+;;;
+;;;   (header-row . data-rows)
+
+(defun scrape-opt-timings-from-file (filename)
+  "Scrapes from file a list of the form
+
+    (header-row . data-rows)"
+  (let* ((data-lines (scrape-data-lines-from-file filename))
+         (header-row (read-header-row-from-line (first data-lines)))
+         (data-rows
+           (loop :with row
+                 :for line :in (rest data-lines)
+                 :do (multiple-value-bind (good-result thing cond)
+                         (read-data-row-from-line line)
+                       (when (null good-result)
+                         (format 
+                          t "Error reading data line:~%  ~s~%  condition: ~s~%  line: ~s"
+                          thing cond line)
+                         (return nil))
+                       (setq row good-result))
+                 :collect row)))
+    `(,header-row
+      ,@data-rows)))
+
+(defun scrape-data-lines-from-file (filename)
+  (with-open-file (stream filename)
+    (scrape-data-lines stream)))
+
+(defun scrape-data-lines (stream)
+  (loop :with look-for := "nQ,"
+        :with look-for-length := (length look-for)
+        :with data-lines := '()
+        :for line := (read-line stream nil nil)
+        :while line
+        :when (and (> (length line) (length look-for))
+                   (string-equal line look-for :end1 look-for-length))
+          :do (push line data-lines)
+              (loop-finish)
+        finally 
+           (when (null data-lines)
+             (return nil))
+           (return
+             (loop :for line := (read-line stream nil nil)
+                   :when (blank-line-p line)
+                     :do (loop-finish)
+                   :do (multiple-value-bind (maybe-int stop-index)
+                           (parse-integer line :junk-allowed t)
+                         (cond
+                           ((and (integerp maybe-int)
+                                 (< stop-index (length line))
+                                 ;; to improve: skip past whitespace
+                                 (char= (char line stop-index) #\,))
+                            (push line data-lines))
+                           (t (loop-finish))))
+                   :finally (return (nreverse data-lines))))))
 
 
 
@@ -182,6 +275,8 @@
 (defparameter *opt-name-mappings*
   '((1 . :baseline)
     (2 . :baseline-2)
+    (3 . :new-walker)
+    (4 . :new-walker-2)
     (5 . :cached-addresser-state)
     (6 . :cached-addresser-state-2)))
 
@@ -275,10 +370,14 @@
   
 
 (defparameter *interesting-opt-name-groups*
-  '((:baseline :cached-addresser-state)
-
+  '((:baseline :new-walker)
+    (:baseline :cached-addresser-state)
+    
+    (:baseline-2 :new-walker-2)
     (:baseline-2 :cached-addresser-state-2)
 
+    (:baseline-2 :new-walker-2 
+     :baseline :new-walker)
     (:baseline-2 :cached-addresser-state-2 
      :baseline :cached-addresser-state)))
 
