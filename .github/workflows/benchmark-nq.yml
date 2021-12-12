@@ -23,6 +23,7 @@ jobs:
           git -C ${HOME}/quicklisp/local-projects clone https://github.com/quil-lang/qvm.git
           make quicklisp
           sudo make install-test-deps
+          # stash directory in ~/quicklisp/local-projects/ for results
           mkdir -p ${HOME}/quicklisp/local-projects/stash
 
       - name: run benchmark-nq on current branch

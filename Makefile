@@ -153,18 +153,18 @@ test-ccl:
 benchmark-qasm:
 	$(QUICKLISP) \
 		--eval "(ql:quickload :cl-quil-benchmarking)" \
-		--eval "(cl-quil-benchmarking::benchmark-qasm-suite)"
+		--eval "(cl-quil-benchmarking:benchmark-qasm-suite)"
 
 benchmark-nq:
 	$(QUICKLISP) \
 		--eval "(ql:quickload :cl-quil-benchmarking)" \
-		--eval "(cl-quil-benchmarking::benchmark-nq)"
+		--eval "(cl-quil-benchmarking:benchmark-nq)"
 
 benchmark-nq-2x:
 	$(QUICKLISP) \
 		--eval "(ql:quickload :cl-quil-benchmarking)" \
-		--eval "(cl-quil-benchmarking::benchmark-nq)" \
-		--eval "(cl-quil-benchmarking::benchmark-nq)"
+		--eval "(cl-quil-benchmarking:benchmark-nq)" \
+		--eval "(cl-quil-benchmarking:benchmark-nq)"
 
 ###############################################################################
 # CLEAN

@@ -22,7 +22,11 @@
                 pragma-end-block
                 pragma-commuting-blocks
                 pragma-initial-rewiring)
-  ;; suite.lisp
   (:export
-   #:run-benchmarks)
+   ;; suite.lisp
+   #:run-benchmarks
+   ;; qasm-benchmarks.lisp
+   #:benchmark-qasm-suite
+   ;; quilc-perf.lisp
+   #:benchmark-nq)  
   (:shadowing-import-from #:cl-quil #:pi))
