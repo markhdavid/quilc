@@ -57,16 +57,38 @@
   is an integer as a multiple of internal-time-units-per-second. Each
   sublist has the same length and contains the same nQ values.")
 
-(defun benchmark-nq ()
-  (setq *benchmark-quilc-perf-series*
-        (benchmark-quilc-perf
-         :start *default-benchmark-nq-start*
-         :step *default-benchmark-nq-step*
-         :end *default-benchmark-nq-end*))
+(defun benchmark-nq (&key max-of-series)
+  (setq *benchmark-quilc-perf-series* (benchmark-quilc-perf))
   (csv-timings *benchmark-quilc-perf-series*)
   (terpri)
   (csv-timings *benchmark-quilc-perf-series* :max-of-series-style t)
   *benchmark-quilc-perf-series*)
+
+(defun benchmark-nq-from-make (csvfile optname &optional 2x)
+  (let* ((timing-data (benchmark-nq))
+         (timing-data-2 (and 2x (benchmark-nq)))
+         (truename-string nil))
+    (when (and csvfile (not (string= csvfile "")))
+      (with-open-file (out csvfile
+                           :direction :output
+                           :if-exists :append)
+        ;; NB: append to -- do not supersede -- existing file
+        (let ((*standard-output* out))
+          (when (and optname (not (string= optname "")))
+            (format t "~a~%" optname))
+          (csv-timings timing-data)
+          (when timing-data-2
+            (terpri)
+            (when (and optname (not (string= optname "")))
+              (format t "~a-2~%" optname))
+            (csv-timings timing-data-2)))
+        (setq truename-string (namestring (truename out))))
+      (format t "~%Results CSV written to:~%  ~a~%"
+              truename-string))
+    (values
+     timing-data
+     timing-data-2
+     truename-string)))
 
 (defparameter *benchmark-program-types*
   '(:static :bell :qft :hadamard))
@@ -225,6 +247,12 @@
            (return results)))
 
 (defun benchmark-quilc-perf (&key start step end skip exclusively)
+  (unless start
+    (setq start *default-benchmark-nq-start*))
+  (unless step
+    (setq step *default-benchmark-nq-step*))
+  (unless end
+    (setq end *default-benchmark-nq-end*))
   ;; (print-configuration)  ; a bit messy, so leave off for now
   (loop :with start := (or start 10)
         :with step := (or step 10)

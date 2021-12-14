@@ -28,5 +28,6 @@
    ;; qasm-benchmarks.lisp
    #:benchmark-qasm-suite
    ;; quilc-perf.lisp
-   #:benchmark-nq)  
+   #:benchmark-nq
+   #:benchmark-nq-from-make)
   (:shadowing-import-from #:cl-quil #:pi))

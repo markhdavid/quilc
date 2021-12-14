@@ -30,7 +30,7 @@ jobs:
         run: |
           echo "working directory: " `pwd`
           echo "branch: " `git branch --show-current`
-          make benchmark-nq | tee ${HOME}/quicklisp/local-projects/stash/this-branch-benchmark-nq-log.txt
+          make csvfile=${HOME}/quicklisp/local-projects/stash/timing-data.csv optname="`git branch --show-current`" benchmark-nq | tee ${HOME}/quicklisp/local-projects/stash/this-branch-benchmark-nq-log.txt
 
       - uses: actions/checkout@v2
         with:
@@ -40,7 +40,7 @@ jobs:
         run: |
           echo "working directory: " `pwd`
           echo "branch: " `git branch --show-current`
-          make benchmark-nq | tee ${HOME}/quicklisp/local-projects/stash/master-branch-benchmark-nq-log.txt
+          make csvfile=${HOME}/quicklisp/local-projects/stash/timing-data.csv optname=baseline benchmark-nq | tee ${HOME}/quicklisp/local-projects/stash/master-branch-benchmark-nq-log.txt
 
       - name: analyze/compare benchmark-nq on both branches
         run: |

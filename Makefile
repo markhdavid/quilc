@@ -155,16 +155,30 @@ benchmark-qasm:
 		--eval "(ql:quickload :cl-quil-benchmarking)" \
 		--eval "(cl-quil-benchmarking:benchmark-qasm-suite)"
 
+# benchmark-nq takes variables:
+# 
+#   csvfile <pathname>
+#     csv data is written to pathmame; if unspecified, written to stdout.
+#     ("" is taken as unspecified)
+#   optname <opt name>
+#     <opt name> is written on a line before csv data; if unspecified,
+#     no such line is written. ("" is taken as unspecified)
+#
+# Example:
+#   make csvfile="~/example-benchmark.csv" optname="new-walker" benchmark-nq
 benchmark-nq:
+	@echo csvfile="$(csvfile)"
+	@echo optname="$(optname)"
 	$(QUICKLISP) \
 		--eval "(ql:quickload :cl-quil-benchmarking)" \
-		--eval "(cl-quil-benchmarking:benchmark-nq)"
+		--eval "(cl-quil-benchmarking:benchmark-nq-from-make \
+				$(csvfile) $(optname))"
 
 benchmark-nq-2x:
 	$(QUICKLISP) \
 		--eval "(ql:quickload :cl-quil-benchmarking)" \
-		--eval "(cl-quil-benchmarking:benchmark-nq)" \
-		--eval "(cl-quil-benchmarking:benchmark-nq)"
+		--eval "(cl-quil-benchmarking:benchmark-nq-from-make \
+				$(csvfile) $(optname) t)"
 
 ###############################################################################
 # CLEAN
