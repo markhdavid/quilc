@@ -82,7 +82,8 @@
             (terpri)
             (when (and optname (not (string= optname "")))
               (format t "~a-2~%" optname))
-            (csv-timings timing-data-2)))
+            (csv-timings timing-data-2))
+          (terpri))  ; leave linebreak to separate future appends
         (setq truename-string (namestring (truename out))))
       (format t "~%Results CSV written to:~%  ~a~%"
               truename-string))
