@@ -172,13 +172,13 @@ benchmark-nq:
 	$(QUICKLISP) \
 		--eval "(ql:quickload :cl-quil-benchmarking)" \
 		--eval "(cl-quil-benchmarking:benchmark-nq-from-make \
-				$(csvfile) $(optname))"
+				\"$(csvfile)\" \"$(optname)\")"
 
 benchmark-nq-2x:
 	$(QUICKLISP) \
 		--eval "(ql:quickload :cl-quil-benchmarking)" \
 		--eval "(cl-quil-benchmarking:benchmark-nq-from-make \
-				$(csvfile) $(optname) t)"
+				\"$(csvfile)\" \"$(optname)\" t)"
 
 ###############################################################################
 # CLEAN
