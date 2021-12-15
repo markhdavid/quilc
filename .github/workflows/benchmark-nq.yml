@@ -48,4 +48,7 @@ jobs:
           tail -11 ${HOME}/quicklisp/local-projects/stash/this-branch-benchmark-nq-log.txt
           ls -l ${HOME}/quicklisp/local-projects/stash/master-branch-benchmark-nq-log.txt
           tail -11 ${HOME}/quicklisp/local-projects/stash/master-branch-benchmark-nq-log.txt
+          ls -l "${HOME}/quicklisp/local-projects/stash/timing-data.csv"
+          echo "Contents of: " "${HOME}/quicklisp/local-projects/stash/timing-data.csv"
+          cat "${HOME}/quicklisp/local-projects/stash/timing-data.csv"
           echo DONE.
