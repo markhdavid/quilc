@@ -71,8 +71,9 @@
     (when (and csvfile (not (string= csvfile "")))
       (with-open-file (out csvfile
                            :direction :output
+                           :if-does-not-exist :create
                            :if-exists :append)
-        ;; NB: append to -- do not supersede -- existing file
+        ;; NB: create/append to -- do not supersede -- file
         (let ((*standard-output* out))
           (when (and optname (not (string= optname "")))
             (format t "~a~%" optname))
