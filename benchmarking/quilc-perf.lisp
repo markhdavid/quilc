@@ -42,7 +42,7 @@
 (defparameter *default-benchmark-nq-step* 20
   "Step to next nQ used by benchmark-nq.")
 
-(defparameter *default-benchmark-nq-end* 70
+(defparameter *default-benchmark-nq-end* 30 ; <=== TEMP - RESTORE: 70  -mhdavid, 12/14/21
   "End nQ value used by benchmark-nq.")
 
 (defvar *benchmark-quilc-perf-series* '()
