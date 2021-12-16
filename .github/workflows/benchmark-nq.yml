@@ -34,7 +34,8 @@ jobs:
 
       - uses: actions/checkout@v2
         with:
-          ref: master
+          ref: feature/benchmark-ci_fake-master
+          # ^later change this branch to 'master'; the above branch name is for testing
 
       - name: run benchmark-nq on master
         run: |
