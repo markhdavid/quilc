@@ -6,7 +6,7 @@
 (in-package #:cl-quil.frontend)
 
 (defvar *standard-post-process-transforms*
-  '(expand-circuits type-check simplify-arithmetic)
+  '(expand-circuits type-check simplify-individual-instructions)
   "The standard transforms that are applied by PARSE-QUIL.")
 
 (define-condition ambiguous-definition-condition ()
